@@ -1,0 +1,7 @@
+/* static/style.css */
+body {
+    font-family: sans-serif;
+}
+#image-container img {
+    max-width: 500px;
+}

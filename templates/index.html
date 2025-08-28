@@ -1,0 +1,21 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stable Diffusion Image Generator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Stable Diffusion Image Generator</h1>
+    <form action="/generate" method="post">
+        <label for="prompt">Prompt:</label><br>
+        <textarea id="prompt" name="prompt" rows="4" cols="50"></textarea><br><br>
+        <button type="submit">Generate Image</button>
+    </form>
+    <div id="image-container">
+        {% if image_url %}
+            <img src="{{ image_url }}" alt="Generated Image">
+        {% endif %}
+    </div>
+</body>
+</html>
