@@ -1,9 +1,9 @@
 import sys
-import asyncio  # Importe asyncio
-import subprocess  # Importe subprocess
+import asyncio
+import subprocess
 
 
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import httpx
@@ -13,25 +13,25 @@ templates = Jinja2Templates(directory="templates")
 
 # Configuração do servidor LM Studio
 LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions"
-LM_STUDIO_START_COMMAND = "caminho/para/lmstudio.exe --api-key SEU_TOKEN_API_KEY --port 1234"  # Substitua pelo comando real
+LM_STUDIO_START_COMMAND = "caminho/para/lmstudio.exe --api-key SEU_TOKEN_API_KEY --port 1234"
 
 async def is_lm_studio_running() -> bool:
     """Verifica se o servidor LM Studio está rodando."""
     try:
         async with httpx.AsyncClient(timeout=5) as client:
-            await client.get(LM_STUDIO_URL)  # Tenta fazer uma requisição GET
-            return True  # Se a requisição for bem-sucedida, o servidor está rodando
+            await client.get(LM_STUDIO_URL)
+            return True
     except httpx.ConnectError:
-        return False  # Se houver um erro de conexão, o servidor não está rodando
+        return False
     except httpx.TimeoutException:
-        return False  # Se houver timeout, o servidor provavelmente não está rodando
+        return False
 
 async def start_lm_studio() -> None:
     """Inicia o servidor LM Studio usando o comando especificado."""
     print("Iniciando o servidor LM Studio...")
     try:
-        subprocess.Popen(LM_STUDIO_START_COMMAND, shell=True)  # Execute o comando em background
-        await asyncio.sleep(10)  # Espera um pouco para o servidor iniciar
+        subprocess.Popen(LM_STUDIO_START_COMMAND, shell=True)
+        await asyncio.sleep(10)
         print("Servidor LM Studio iniciado (aguarde alguns instantes até estar totalmente operacional).")
     except Exception as e:
         print(f"Erro ao iniciar o servidor LM Studio: {e}")
@@ -69,17 +69,19 @@ async def generate_text_with_lm_studio(prompt: str) -> str:
     except Exception as e:
         return f"Erro inesperado: {e}"
 
+@app.on_event("startup")
+async def startup_event():
+    await ensure_lm_studio_is_running()
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    await ensure_lm_studio_is_running()  # Garante que o LM Studio esteja rodando
-    return templates.TemplateResponse("index.html", {"request": request, "generated_text": None})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/generate")
 async def generate_text(request: Request, prompt: str = Form(...)):
-    await ensure_lm_studio_is_running()  # Garante que o LM Studio esteja rodando
     generated_text = await generate_text_with_lm_studio(prompt)
-    return templates.TemplateResponse("index.html", {"request": request, "generated_text": generated_text})
+    return generated_text
 
 if __name__ == "__main__":
     import uvicorn
-    asyncio.run(uvicorn.run(app, host="0.0.0.0", port=8000))  # Usa asyncio.run
+    asyncio.run(uvicorn.run(app, host="0.0.0.0", port=8000))

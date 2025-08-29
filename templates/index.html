@@ -1,21 +1,107 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Stable Diffusion Image Generator</title>
+    <title>IA Chat</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        #chat-container {
+            width: 500px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        #chat-log {
+            height: 300px;
+            overflow-y: scroll;
+            padding: 5px;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+        }
+        .user-message {
+            text-align: right;
+            margin-bottom: 5px;
+        }
+        .ai-message {
+            text-align: left;
+            margin-bottom: 5px;
+        }
+        .message-text {
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        #message-input {
+            width: 100%;
+            padding: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Stable Diffusion Image Generator</h1>
-    <form action="/generate" method="post">
-        <label for="prompt">Prompt:</label><br>
-        <textarea id="prompt" name="prompt" rows="4" cols="50"></textarea><br><br>
-        <button type="submit">Generate Image</button>
-    </form>
-    <div id="image-container">
-        {% if image_url %}
-            <img src="{{ image_url }}" alt="Generated Image">
-        {% endif %}
+    <h1>IA Chat</h1>
+    <div id="chat-container">
+        <div id="chat-log">
+            <!-- As mensagens do chat aparecerão aqui -->
+        </div>
+        <input type="text" id="message-input" placeholder="Digite sua mensagem...">
+        <button id="send-button">Enviar</button>
     </div>
+
+    <script>
+        const chatLog = document.getElementById('chat-log');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        sendButton.addEventListener('click', async () => {
+            const message = messageInput.value.trim();
+            if (message !== '') {
+                // Adiciona a mensagem do usuário ao chat
+                addUserMessage(message);
+                messageInput.value = '';
+
+                // Envia a mensagem para o backend
+                const aiResponse = await sendMessageToBackend(message);
+
+                // Adiciona a resposta da IA ao chat
+                addAiMessage(aiResponse);
+            }
+        });
+
+        async function sendMessageToBackend(message) {
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `prompt=${encodeURIComponent(message)}`
+                });
+                if (!response.ok) {
+                    throw new Error(`Erro na requisição: ${response.status}`);
+                }
+                const data = await response.text();
+                return data;
+            } catch (error) {
+                console.error('Erro ao enviar mensagem para o backend:', error);
+                return 'Erro ao obter resposta da IA.';
+            }
+        }
+
+        function addUserMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('user-message');
+            messageElement.innerHTML = `<div class="message-text">${message}</div>`;
+            chatLog.appendChild(messageElement);
+            chatLog.scrollTop = chatLog.scrollHeight; // Rola para a parte inferior
+        }
+
+        function addAiMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('ai-message');
+            messageElement.innerHTML = `<div class="message-text">${message}</div>`;
+            chatLog.appendChild(messageElement);
+            chatLog.scrollTop = chatLog.scrollHeight; // Rola para a parte inferior
+        }
+    </script>
 </body>
 </html>

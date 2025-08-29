@@ -2,6 +2,36 @@
 body {
     font-family: sans-serif;
 }
-#image-container img {
-    max-width: 500px;
+
+/* Estilos para o chat (adicione ao seu style.css existente) */
+#chat-container {
+    width: 500px;
+    margin: 0 auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+#chat-log {
+    height: 300px;
+    overflow-y: scroll;
+    padding: 5px;
+    border: 1px solid #eee;
+    margin-bottom: 10px;
+}
+.user-message {
+    text-align: right;
+    margin-bottom: 5px;
+}
+.ai-message {
+    text-align: left;
+    margin-bottom: 5px;
+}
+.message-text {
+    background-color: #f0f0f0;
+    padding: 5px;
+    border-radius: 5px;
+    display: inline-block;
+}
+#message-input {
+    width: 100%;
+    padding: 5px;
 }
